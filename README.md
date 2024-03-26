@@ -7,10 +7,23 @@ Because it is using REST API, it allows handling CORS between this proxy and the
 
 This project works hand in hand with https://github.com/michelroberge/starlims-react
 
-### Missing information
-- Whitelisting instructions in STARLIMS
-- Enabling the REST API in STARLIMS
-- Importing the support package in  STARLIMS
+### STARLIMS Preparation
+- Create the necessary STARLIMS scripts (see in ./src/starlims_scripts)
+- Whitelist the ReactProxy.RunAction script
+- Enable the REST API in STARLIMS
+
+NOTE: If you don't know what to do with the .ssl scripts in the src/starlims_scripts directory, then perhaps you shouldn't be trying this.
+
+## Docker Compose
+If you have both this repo and the starlims-react repo cloned, you can just get the docker-compose.yml file and organize your project like this:
+```
+./project/docker-compose.yml
+./project/starlims-react/
+./project/starlims-node-proxy/
+```
+Follow both repo's instructions on .env files (credentials/secrets/url/etc.)
+Then run the up & build command:
+`docker compose up --build`
 
 ## Setup Instructions
 1. **Clone the repository:**
@@ -64,7 +77,7 @@ This project works hand in hand with https://github.com/michelroberge/starlims-r
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on GitHub.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License with Commercial restrictions. See the `LICENSE` file for details.
 
 ## Author
 Michel Roberge
