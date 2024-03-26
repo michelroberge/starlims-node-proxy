@@ -1,0 +1,52 @@
+version: '3'
+
+# Use this compose file if you wish to launch starlims-react, starlims-node-proxy, and a redis docker all together.
+# structure:
+# ./project/docker-compose.yml
+# ./project/starlims-react/
+# ./project/starlims-node-proxy/
+
+services:
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"  # Expose Redis port for local development
+    volumes:
+      - ${PWD}/redis_data:/data  # Mount volume to persist Redis data
+    networks:
+      - app
+      
+  starlims-proxy:
+    container_name: starlims-proxy
+    build:
+      context: starlims-node-proxy
+    image: starlims-proxy:latest
+    ports:
+      - "4000:4000"
+    networks:
+      - app
+    restart: always
+    depends_on:
+      - redis  # Ensure that the Node.js app waits for Redis to be ready
+    environment:
+      - REDIS_HOST=redis  # Set environment variable for connecting to Redis
+      - REDIS_PORT=6379    
+
+  starlims-react:
+    container_name: starlims-react
+    build:
+      context: starlims-react
+    image: starlims-react:latest
+    ports:
+      - "3033:3033"
+    networks:
+      - app
+    restart: always
+
+networks:
+  app:
+    driver: bridge
+    name: shared_network
+    external: true
