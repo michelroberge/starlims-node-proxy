@@ -1,0 +1,93 @@
+/********************************************************************************
+Description.. :	Proxy to run actions and datasources
+Parameters... :	- scriptName (format application.script or application.script.procedure)
+				- parameters (array) to pass to script
+				- type (DS or script)
+Returns...... :	- 
+Author....... :	MICHEL_ROBERGE
+Date......... : 2024-03-05
+********************************************************************************
+_______________________________________________________________________________
+
+Modification. : 
+Author....... :	
+Date......... :	
+_______________________________________________________________________________
+********************************************************************************/;
+:PARAMETERS scriptName, params, Type;
+:DEFAULT scriptName, "LABS.getSites";
+:DEFAULT params, {};
+:DEFAULT Type, "DS";
+
+/* 	BECAUSE REACT client is stateless and rely on REST API,
+	this process is to initialize the user, STARLIMSDEPT, etc
+	
+	TODO: 
+		- verify token 
+;	
+	
+DoProc("initialize");
+
+/* then perform the action;
+:IF upper(Type) == "DS" .or. upper(Type) == 'DATASOURCE';
+	:DECLARE uResult, ds, o;
+	uResult := RunDS(scriptName, params, "xml");
+	:RETURN FromJson(ExecFunction("Runtime_Support.ExtJSCommunication.GetProxyResponse", { uResult }));
+:ELSE;
+	:RETURN ExecFunction(scriptName, params);
+:ENDIF;
+
+:PROCEDURE initialize;
+/*:IF !DoProc("ReactProxy.Session.VerifyHeader");
+/*	RaiseError("Invalid Session");
+/*:ENDIF;
+
+DoProc("handleDeptHeader");
+DoProc("handleRoleHeader");
+:ENDPROC;
+
+/* logic is to take the site (DEPT) from the header (if present). If it is not, then assume "SITE1", the default demo site;
+:PROCEDURE handleDeptHeader;
+:PUBLIC STARLIMSDEPT, MYUSERNAME;
+:DECLARE tmpLabs;
+
+MYUSERNAME := GetUserData();
+
+:TRY;
+	STARLIMSDEPT := Request:Headers:Get("DEPT");
+	:IF Empty(STARLIMSDEPT);
+		RaiseError("Force default user lab");
+	:ENDIF;
+:CATCH;
+	tmpLabs := LSearch("select DEPTLIST from USERS where USRNAM = ?", "", "DATABASE", { MYUSERNAME });
+	:IF Empty(tmpLabs);
+		STARLIMSDEPT := "SITE1";
+	:ELSE;
+		STARLIMSDEPT := BuildArray(tmpLabs)[1];
+	:ENDIF;
+:ENDTRY;
+Session:Add("STARLIMSDEPT", STARLIMSDEPT);
+:ENDPROC;
+
+
+/* logic is to take the role from the header (if present). If it is not, then assume "visitor" role;
+:PROCEDURE handleRoleHeader;
+:DECLARE roleName;
+
+:PUBLIC MYROLE;
+
+:TRY;
+	roleName := Request:Headers:Get("ROLE");
+	:IF Empty(roleName);
+		RaiseError("Force default user role");
+	:ENDIF;
+:CATCH;
+	roleName := LSearch("select ROLE from USERS where USRNAM = ?", "", "DATABASE", { MYUSERNAME });
+	:IF Empty(roleName);
+		roleName := "Visitor";
+	:ENDIF;
+:ENDTRY;
+
+MYROLE := LSearch("Select TREEAUTH From ROLES where ROLE = ?", "", "DATABASE", {roleName});
+Session:Add("MYROLE", MYROLE);	
+:ENDPROC;

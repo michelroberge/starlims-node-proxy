@@ -1,0 +1,37 @@
+/********************************************************************************
+Description.. :	dummy session management for React app (stateless)
+Parameters... :	- 
+Returns...... :	- 
+Author....... :	MICHEL_ROBERGE
+Date......... : 2024-03-05
+********************************************************************************
+_______________________________________________________________________________
+
+Modification. : 
+Author....... :	
+Date......... :	
+_______________________________________________________________________________
+********************************************************************************/;
+
+:PROCEDURE Add;
+:DECLARE sessionId;
+	sessionId := CreateGuid();
+	Session:Add("react-sessionId", sessionId);
+	:RETURN sessionId;
+:ENDPROC;
+
+:PROCEDURE Check;
+	:PARAMETERS sessionId;
+	:DEFAULT sessionId, "FE5556F3-BE75-4075-B1D1-8D4304EE539F";
+	:RETURN Session:Get("react-sessionId") == sessionId .and. !Empty(sessionId);
+:ENDPROC;
+
+:PROCEDURE Clear;
+	Session:Add("react-sessionId", "");
+:ENDPROC;
+
+:PROCEDURE VerifyHeader;
+:DECLARE sessionId;
+sessionId := Request:Headers:Get("STARLIMSSessionId");
+:RETURN DoProc("ReactProxy.Session.Check", { sessionId });
+:ENDPROC;

@@ -1,0 +1,58 @@
+/********************************************************************************
+Description.. :	Since React is stateless, this wrapper will perform the 
+				necessary authentication logic and generate a token to validate
+				later on for extra security.
+Parameters... :	- 
+
+Returns...... :	- 
+
+Author....... :	MICHEL_ROBERGE
+Date......... : 2024-03-05
+********************************************************************************
+_______________________________________________________________________________
+
+Modification. : 
+Author....... :	
+Date......... :	
+_______________________________________________________________________________
+********************************************************************************/;
+:PARAMETERS username, password;
+:DEFAULT username, "user";
+:DEFAULT password, "password";
+
+:DECLARE authInfo, aUserStatus, r;
+
+r := CreateUdObject();
+r:success := .F.;
+r:message := "Invalid credentials";
+
+aUserStatus := SQLExecute("select {fn ifnull(STATUS, ?'Locked'?)} STATUS from USERS where USRNAM = ?username?");		
+:IF Empty(aUserStatus);
+	:RETURN r;
+:ENDIF;	
+
+:IF aUserStatus[1][1] == 'Locked';
+	r:message := "Account locked";
+	:RETURN r;
+:ENDIF;
+
+authInfo := ExecFunction("Authentication.AuthenticationSupport.Authenticate", {username, password});
+:IF !authInfo[1];
+	ExecFunction("Security_Module.LogHistory", {"LOGIN FAILED FROM REACT. INVALID LOGIN", username});
+	DoProc("Authentication.AuthenticationSupport.HandleFailedLogins", { username });
+	:RETURN r;
+:ENDIF;
+
+ExecFunction("Authentication.ClearFailedPreLogins", { username });
+ExecFunction("Authentication.ClearFailedLogins", { username });
+
+/* reset response value;
+r:success := .T.;
+r:message := "";
+r:sessionId := DoProc("ReactProxy.Session.Add");
+
+Session:Add("STARLIMSUser", username);
+Session:Add("STARLIMSPass", password);	
+Session:Add("STARLIMSUserType", "FCL");
+
+:RETURN r;

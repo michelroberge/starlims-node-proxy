@@ -1,0 +1,101 @@
+/********************************************************************************
+Description.. :	
+Parameters... :	- 
+Returns...... :	- 
+Author....... :	DDA
+Date......... : 2021-06-23
+********************************************************************************/;
+:CLASS RestApiCustomBase;
+:INHERIT RestApi.RestApiBase;
+	
+	:DECLARE AccessKey;
+	:DECLARE Path;
+	:DECLARE APIEmail;
+	:DECLARE LangId;
+	:DECLARE UserName;
+	
+	/* do stuff here that applies to all custom API's;
+	
+	:PROCEDURE Constructor;
+		
+		:DECLARE sUser;
+		Me:LangId := "ENG";
+		Me:UserName := GetUserData();
+						
+		Me:AccessKey := Request:Headers:Get("SL-API-Auth");
+		Me:APIEmail := Request:Headers:Get("SL-API-Email");
+		Me:Path := Me:constructPath();		
+
+		sUser := LSearch("select USRNAM from USERS where EMAIL = ? and STATUS = ?", "", "DATABASE", { Me:APIEmail, 'Active' });				
+		
+		:IF ( !Empty(sUser) ) .and. ( sUser <> GetUserData() );
+			Me:Impersonate(sUser);
+		:ENDIF;
+		
+		Me:LangId := LSearch("select LANGID from USERS where USRNAM = ?", "ENG", "DATABASE", { MYUSERNAME });
+		
+	:ENDPROC;
+	
+	:PROCEDURE GetDownloadUrl;
+		:PARAMETERS filePath;
+		
+		:DECLARE path;
+		:DECLARE protocol, host, application, fileName;
+		path := LimsNetConnect(, "System.IO.Path");
+		
+		protocol    := "https"; /* this is hard-coded for now, not sure how to correctly handle this from the REST API;
+		host        := Request:ServerVariables:Get("HTTP_HOST");
+		application := Request:ApplicationPath;		
+		fileName    := path:GetFileName(filePath);
+		
+		:RETURN protocol + "://" + host + application + "/rest.web.api/download/" + fileName;
+	:ENDPROC;
+
+	:PROCEDURE InvokeMethod;
+	:PARAMETERS subEntity, params;
+	:DECLARE method;
+	
+		method := Request:HttpMethod; 
+		:RETURN Base:InvokeMethod(method, params);
+		
+	:ENDPROC;
+	
+	:PROCEDURE constructPath;
+	:DECLARE aPath, aPathDef, i, n, nEnd;
+	aPath := BuildArray(Request:rawUrl, , "/");
+	aPathDef := {};
+	n := aScan(aPath, "rest.web.api") + 4; /* ignore rest.web.api + version + topic + entity;
+	:FOR i := n :TO Len(aPath);
+		:IF !Empty(aPath[i]);
+			nEnd := At("?", aPath[i] );
+			:IF nEnd > 1;
+				aAdd(aPathDef, Left(aPath[i], nEnd - 1));
+			:ELSE;
+				:IF nEnd = 0;
+					aAdd(aPathDef, aPath[i]);
+				:ENDIF;
+			:ENDIF;
+		:ENDIF;
+	:NEXT;
+	:RETURN aPathDef;
+	:ENDPROC;
+
+
+	:PROCEDURE UnauthorizedRequestResponse;
+		:DECLARE response;
+		response := CreateUdObject();
+		response:StatusCode := 403;
+		response:Response := CreateUdObject();
+		response:Response:message := "User not found/not authorized";
+		:RETURN response;
+	:ENDPROC;
+	
+	/* Allow system to impersonate a user so transactions are corrected against the correct user;
+	:PROCEDURE Impersonate;
+		:PARAMETERS sUser;
+		:IF !IsDefined("MYUSERNAME");
+			:PUBLIC MYUSERNAME;
+		:ENDIF;
+		MYUSERNAME := sUser;
+		SetUserData(MYUSERNAME);		
+	:ENDPROC;

@@ -1,0 +1,86 @@
+/********************************************************************************
+Description.. :	WARNING - This API should be exposed only if / when STARLIMS 
+				becomes 100% based on API. Exposing this endpoint allows ANY 
+				external systems to run ANY STARLIMS script.
+				This can be used if no control over exposed functionalities 
+				required, perhaps once a new UI is built. Until STARLIMS runs as 
+				a Web Service server only, this API should not be exposed. IF 
+				it is decided to be exposed, then the REST Dev Mode should be 
+				set to FALSE to enforce some security in the API communication.
+				
+				It would also be recommended to shortlist or implement some rules 
+				to prevent some activities from being performed through API.
+Parameters... :	- 
+Returns...... :	- 
+Author....... :	Michel Roberge
+Date......... : 2022-10-03
+********************************************************************************/;
+
+:CLASS RunAction;
+:INHERIT API_Helper_Custom.RestApiCustomBase;
+
+:PROCEDURE GET;
+	:RETURN Me:GetNotImplementedResponse();
+:ENDPROC;
+
+:PROCEDURE POST;
+	:PARAMETERS payload;
+	:DECLARE sUser, response;
+	sUser := LSearch("select USRNAM from USERS where EMAIL = ? and STATUS = ?", "", "DATABASE", { Me:APIEmail, 'Active' });
+	:IF Empty(sUser);
+		:RETURN Me:UnauthorizedRequestResponse();
+	:ENDIF;
+	Me:Impersonate(sUser);
+	:IF payload:IsProperty("action") .and. !Empty(payload:action);
+		:DECLARE response;
+		response := CreateUdObject();
+		response:StatusCode := 200;
+		response:Response := CreateUdObject();
+		response:Response:data := "";
+		:IF payload:IsProperty("apiReferenceId") .and. !Empty(payload:apiReferenceId);
+			response:Response:apiReferenceId := payload:apiReferenceId;
+		:ELSE;
+			payload:apiReferenceId := lower(CreateGuid());
+		:ENDIF;
+		/* construct standard response header;
+		
+		response:Response:apiReferenceId := payload:apiReferenceId;
+		response:Response:timeStamp := Now(); 
+		response:Response:instance := CreateUdObject();
+		response:Response:instance:region := GetSetting("PRODUCTNAME");
+		response:Response:instance:level := GetSetting("INSTALLATIONNAME");
+		
+		:IF Me:IsWhiteListed(payload:action);
+			:TRY;
+				:IF payload:IsProperty("parameters") .and. !Empty(payload:parameters);
+					response:Response:data := ExecFunction(payload:action, payload:parameters);
+				:ELSE;
+					response:Response:data := ExecFunction(payload:action);
+				:ENDIF;
+			:CATCH;
+				response:StatusCode := 400;
+				response:Response := CreateUdObject();
+				response:Response:message := formatErrorMessage(GetLastSSLError());
+			:ENDTRY;
+		:ELSE;
+			response:StatusCode := 403;
+			response:Response := CreateUdObject();
+			response:Response:message := "Script '" + payload:action + "' has not been whitelisted.";
+		:ENDIF;
+		
+		:RETURN response;
+	:ELSE;
+		:DECLARE response;
+		response := CreateUdObject();
+		response:StatusCode := 400;
+		response:Response := CreateUdObject();
+		response:Response:message := "invalid action/parameters";
+		:RETURN response;
+	:ENDIF;
+:ENDPROC;
+
+:PROCEDURE IsWhiteListed; 
+:PARAMETERS action;
+/* implement your own whitelisting. For this project, you only need the ReactProxy.RunAction to be whitelisted.;
+:RETURN Lower(action) == "reactproxy.runaction";
+:ENDPROC;
