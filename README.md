@@ -67,11 +67,10 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## Author
-[Your Name]
+Michel Roberge
 
 ## Contact
 For any inquiries or support, please contact michel_roberge@msn.com.
 
 ## Acknowledgements
-- Mention any libraries, frameworks, or resources used in developing the project.
-- Any other relevant acknowledgements.
+- ChatGPT and many other online resources for the learning curve on node!
