@@ -5,6 +5,8 @@ This Node.js application serves as a proxy server for interacting with the STARL
 
 Because it is using REST API, it allows handling CORS between this proxy and the client app, without having to change anything on STARLIMS side.
 
+This project works hand in hand with https://github.com/michelroberge/starlims-react
+
 ### Missing information
 - Whitelisting instructions in STARLIMS
 - Enabling the REST API in STARLIMS
@@ -68,7 +70,7 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 [Your Name]
 
 ## Contact
-For any inquiries or support, please contact [Your Email Address].
+For any inquiries or support, please contact michel_roberge@msn.com.
 
 ## Acknowledgements
 - Mention any libraries, frameworks, or resources used in developing the project.
