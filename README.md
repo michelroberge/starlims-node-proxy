@@ -28,7 +28,7 @@ Then run the up & build command:
 ## Setup Instructions
 1. **Clone the repository:**
    ```sh
-   git clone <repository_url>
+   git clone https://github.com/michelroberge/starlims-node-proxy
    ```
 2. **Install dependencies:**
    ```sh
